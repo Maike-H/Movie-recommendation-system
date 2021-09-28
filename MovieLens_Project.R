@@ -200,7 +200,8 @@ lambda
 
 # Part 4
 
-# Final training with the complete edx set and the trained regulated algorithm
+# Final training with the regulated algorithm on the complete edx set to get all users and 
+# movies back
 reg_movie_effect <- edx %>%
   group_by(movieId) %>%
   summarize(reg_movie_effect = sum(rating - rating_avg)/(n()+lambda))
@@ -209,12 +210,18 @@ reg_user_effect <- edx %>%
   group_by(userId) %>%
   summarize(reg_user_effect = sum(rating - rating_avg - reg_movie_effect)/(n()+lambda))
 
-#Final test on the validation set
+# Left-join the users and movies of the validation set just to get the same users and movies 
+# The ratings of the validation set are not used or even touched
 final_predictions <- validation %>% 
   left_join(reg_movie_effect, by = "movieId") %>%
   left_join(reg_user_effect, by = "userId") %>%
   mutate(predictions = rating_avg + reg_movie_effect + reg_user_effect)
 
+# Now the final-predictions table has the same length as the validation set
+dim(final_predictions)
+dim(validation)
+
+# Final test on the validation set
 RMSE(final_predictions$predictions, validation$rating)
 
 
